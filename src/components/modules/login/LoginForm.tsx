@@ -2,27 +2,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks/api/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useId } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { EyeOffIcon, EyeIcon } from "lucide-react";
 import { useToggle } from "@/hooks/useToggle";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { LoginFormData } from "@/types/auth";
 import { loginFormSchema } from "@/types/auth";
+import { toast } from "sonner";
 
 export default function LoginForm() {
-  const { mutate: login, isPending } = useLogin();
+  const { mutate: loginApi, isPending } = useLogin();
+  const { login: authLogin } = useAuth();
   const id = useId();
   const [isVisible, toggleVisibility] = useToggle(false);
-
+  const navigate = useNavigate();
   // React Hook Form setup with Zod validation
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
     clearErrors,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginFormSchema),
@@ -30,20 +31,22 @@ export default function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
   const onSubmit = (data: LoginFormData) => {
     clearErrors();
-    login(
+    loginApi(
       { email: data.email, password: data.password },
       {
-        onSuccess: () => {
-          // Success handled by the mutation
+        onSuccess: (response) => {
+          // Store token and user data in auth context
+          authLogin(response.data);
+          toast.success("Login successful");
+          navigate("/workspaces");
         },
-        onError: (error) => {
-          setError("root", { message: error.message });
+        onError: (error: Error) => {
+          toast.error(error.message);
         },
       }
     );
@@ -109,22 +112,15 @@ export default function LoginForm() {
             </button>
           </div>
           {errors.password && (
-            <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
         {/* Remember me and Forgot password */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember-me"
-              {...register("rememberMe")}
-              className="text-purple-600 border-gray-300 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-            />
-            <label htmlFor="remember-me" className="text-sm text-gray-700">
-              Remember me
-            </label>
-          </div>
+          <div />
           <Link
             to="/auth/forgot-password"
             className="text-sm text-gray-600 hover:text-gray-900"
@@ -135,7 +131,9 @@ export default function LoginForm() {
 
         {/* Error Message */}
         {errors.root && (
-          <div className="text-red-600 text-sm text-center">{errors.root.message}</div>
+          <div className="text-red-600 text-sm text-center">
+            {errors.root.message}
+          </div>
         )}
 
         {/* Sign In Button */}

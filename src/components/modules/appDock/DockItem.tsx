@@ -33,7 +33,7 @@ const DockItem = React.forwardRef<HTMLButtonElement, DockItemProps>(
         {children ? (
           children
         ) : imageSrc ? (
-          <img src={imageSrc} alt={label} className="rounded-xl object-cover" />
+          <img src={imageSrc} alt={label} className="h-full rounded-xl" />
         ) : null}
       </div>
     );

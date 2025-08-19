@@ -10,11 +10,11 @@ export interface CookieOptions {
   httpOnly?: boolean; // Note: httpOnly can't be set from client-side JavaScript
 }
 
-// Default cookie options
+// Default cookie options - consistent with AuthContext
 const defaultOptions: CookieOptions = {
   path: '/',
-  sameSite: 'lax',
-  secure: window.location.protocol === 'https:',
+  sameSite: 'lax', // Consistent configuration for better compatibility
+  secure: window.location.protocol === 'https:', // Environment-aware secure flag
 };
 
 // Utility function to parse cookies from document.cookie

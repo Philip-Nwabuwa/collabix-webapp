@@ -1,9 +1,9 @@
 // User-related types for the application
 export interface User {
   id: string;
-  username: string;
+  name: string;
   email: string;
-  avatar?: string;
+  avatarUrl?: string;
   online: boolean;
   lastSeen: Date;
 }

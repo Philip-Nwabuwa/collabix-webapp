@@ -24,42 +24,51 @@ import {
   User,
   UserRoundCheck,
 } from "lucide-react";
-import placeholderImage from "/dashboard-preview.png";
 import DockItem from "./DockItem";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetWorkspaces } from "@/hooks/api/useWorkspaces";
 
 export default function AppDock() {
   const pathname = useLocation();
   const router = useNavigate();
+  const { user } = useAuth();
   const activeWorkspaceId = (() => {
-    // Match /w/<workspaceId>
     const match = pathname.pathname.match(/^\/w\/([^/]+)/);
     return match ? match[1] : undefined;
   })();
 
-  // TODO: Replace with real workspaces from API/store
-  const dockItems = [
-    { id: "yrgGdg234j", label: "Workspace 1", imageSrc: placeholderImage },
-  ];
+  const { data: workspacesResponse } = useGetWorkspaces();
+
+  const workspaces = workspacesResponse?.data || [];
+
+  const dockItems = workspaces.map((workspace) => ({
+    id: workspace.id,
+    label: workspace.name,
+    imageSrc: workspace.logoUrl,
+  }));
 
   return (
-    <aside aria-label="Application Dock" className="h-full w-16">
+    <aside aria-label="Application Dock" className="h-full w-18">
       <div className="h-screen flex flex-col items-start justify-between">
-        <div className="flex flex-col items-center gap-2 my-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="w-full flex flex-col items-start gap-2 my-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {dockItems.map((item) => {
             const isActive = activeWorkspaceId === item.id;
             return (
               <div key={item.id} className="flex items-center gap-2">
                 {isActive ? (
-                  <div className="h-8 w-[3px] rounded-br-full rounded-tr-full bg-black/90" />
+                  <div className="h-10 w-[3px] rounded-br-full rounded-tr-full bg-black/90" />
                 ) : (
-                  <div className="h-8 w-[3px] rounded-br-full rounded-tr-full bg-transparent" />
+                  <div className="h-10 w-[3px] rounded-br-full rounded-tr-full bg-transparent" />
                 )}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link to={`/w/${item.id}`}>
+                    <Link
+                      to={`/w/${item.id}`}
+                      className="size-12 cursor-pointer"
+                    >
                       <DockItem
-                        label={item.label}
-                        imageSrc={item.imageSrc}
+                        label={item.label ?? ""}
+                        imageSrc={item.imageSrc ?? undefined}
                         active={isActive}
                       />
                     </Link>
@@ -91,8 +100,8 @@ export default function AppDock() {
                     className="grid place-items-center rounded-full shadow-sm backdrop-blur transition-transform duration-200 ease-out hover:scale-[1.05] active:scale-95"
                   >
                     <Avatar className="size-10">
-                      <AvatarImage src={placeholderImage} alt="User" />
-                      <AvatarFallback>AD</AvatarFallback>
+                      <AvatarImage src={user?.avatarUrl} alt="User" />
+                      <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </button>
                 </PopoverTrigger>
@@ -103,15 +112,15 @@ export default function AppDock() {
               <div className="p-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="size-10">
-                    <AvatarImage src={placeholderImage} alt="User" />
-                    <AvatarFallback>AD</AvatarFallback>
+                    <AvatarImage src={user?.avatarUrl} alt="User" />
+                    <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
-                      Ada Lovelace
+                      {user?.name}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      ada@example.com
+                      {user?.email}
                     </p>
                   </div>
                 </div>
